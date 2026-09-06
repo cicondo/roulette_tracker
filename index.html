@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Roulette Tracker" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<meta name="theme-color" content="#0b1118" />
+<title>Roulette Tracker</title>
+<style>
+:root{--bg:#0b1118;--panel:#111923;--card:#151f2a;--border:#2a3948;--text:#f5f7fa;--muted:#9fb0c1;--blue:#2490ff;--green:#2edb78;--red:#d93434;--yellow:#e5b72d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:820px;margin:0 auto;padding:10px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px;margin-bottom:8px}.row{display:flex;gap:8px;align-items:center}.grow{flex:1}.btn,.sel{min-height:42px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:700;padding:0 12px}.btn:active{transform:scale(.98)}.btn.blue{background:var(--blue);border-color:var(--blue)}.btn.green{background:#16a34a;border-color:#16a34a}.btn.red{background:#b52525;border-color:#b52525}.btn.ghost{background:transparent}.title{font-size:24px;font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}.status{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px}.stat b{display:block;font-size:18px;margin-top:2px}.sectors{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sector{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}.sector .num{font-size:44px;font-weight:900;line-height:1}.sector.primary .num{background:var(--red);display:inline-block;min-width:84px;padding:8px 18px;border-radius:14px}.sector .score{margin-top:6px;font-size:13px;color:var(--muted)}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}.history{display:flex;flex-wrap:wrap;gap:5px}.ball{width:31px;height:31px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:800}.ball.latest{outline:2px solid var(--blue)}.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.nbtn{min-height:42px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;font-weight:800}.nbtn.zero{background:#137a3f}.nbtn.rednum{background:#b62e2e}.feedback{font-size:18px;font-weight:800}.positive{color:var(--green)}.negative{color:#ff6363}.warn{color:var(--yellow)}.hidden{display:none!important}.footer{display:flex;justify-content:space-between;gap:8px}.mono{font-variant-numeric:tabular-nums}.storage{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}.dot.temp{background:var(--yellow)}@media(max-width:520px){.wrap{padding:6px}.panel{padding:8px;border-radius:11px}.title{font-size:21px}.status{grid-template-columns:1fr 1fr 1fr}.stat{padding:6px}.stat b{font-size:16px}.sector .num{font-size:38px}.sector.primary .num{min-width:72px;padding:6px 14px}.btn,.sel{min-height:40px;padding:0 9px}.grid{gap:4px}.nbtn{min-height:40px}.actions{grid-template-columns:1fr 1fr}.actions .skip{grid-column:1/-1}.history .ball:nth-child(n+15){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <div class="row">
+      <select id="tableSel" class="sel grow"><option value="0">Tisch 1</option><option value="1">Tisch 2</option><option value="2">Tisch 3</option></select>
+      <button id="undoBtn" class="btn ghost">Undo</button>
+      <button id="resetBtn" class="btn red">Reset</button>
+    </div>
+    <div class="row" style="margin-top:8px;justify-content:space-between"><div id="tableTitle" class="title">TISCH 1</div><div id="coupCount" class="small muted mono">0 Coups</div></div>
+    <div class="storage" style="margin-top:4px"><span id="storageDot" class="dot"></span><span id="storageText">Speicher: dauerhaft</span></div>
+  </div>
+
+  <div class="panel status">
+    <div class="stat"><span class="small muted">Status</span><b id="statusText">WARTEN</b></div>
+    <div class="stat"><span class="small muted">Bets</span><b id="betsText">0</b></div>
+    <div class="stat"><span class="small muted">P/L</span><b id="plText">0 U</b></div>
+  </div>
+
+  <div class="panel">
+    <div class="sectors">
+      <div class="sector primary"><div class="small muted">SEKTOR A</div><div id="aNum" class="num">—</div><div class="score">mit 3 Nachbarn · <span id="aScore">—</span></div></div>
+      <div class="sector"><div class="small muted">SEKTOR B</div><div id="bNum" class="num">—</div><div class="score">mit 3 Nachbarn · <span id="bScore">—</span></div></div>
+    </div>
+    <div class="actions">
+      <button id="betABtn" class="btn green">A SETZEN · 7 U</button>
+      <button id="betABBtn" class="btn blue">A+B · 14 U</button>
+      <button id="skipBtn" class="btn ghost skip">ÜBERSPRINGEN</button>
+    </div>
+    <div id="feedback" class="feedback" style="margin-top:8px">Noch kein Bet aktiv.</div>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="justify-content:space-between"><div><b>Session</b> <span id="sessionInfo" class="small muted"></span></div><div class="small muted"><span id="hitsText">0 Hits</span> · <span id="rateText">0%</span></div></div>
+    <div class="history" id="history" style="margin-top:7px"></div>
+  </div>
+
+  <div class="panel"><div class="small muted" style="margin-bottom:6px">NEUE ZAHL</div><div id="numGrid" class="grid"></div></div>
+
+  <div class="panel footer">
+    <button id="newSessionBtn" class="btn ghost">Neue Session</button>
+    <button id="exportBtn" class="btn ghost">Export JSON</button>
+  </div>
+</div>
+<script>
+const wheel=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const redNums=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const KEY='rouletteTrackerV2';
+let persistentStorage=true;
+function freshTable(i){return{name:'Tisch '+(i+1),history:[],bets:[],activeBet:null,skips:0,sessionStarted:new Date().toISOString()}}
+function freshState(){return{active:0,tables:[freshTable(0),freshTable(1),freshTable(2)]}}
+function storageAvailable(){
+  try{
+    const k='__rt_test__';
+    localStorage.setItem(k,'1');
+    localStorage.removeItem(k);
+    return true;
+  }catch(e){return false}
+}
+persistentStorage=storageAvailable();
+let state=freshState();
+if(persistentStorage){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw) state=JSON.parse(raw);
+    else {
+      const old=localStorage.getItem('rouletteTrackerV1');
+      if(old) state=JSON.parse(old);
+    }
+  }catch(e){state=freshState();persistentStorage=false}
+}
+function save(){
+  if(!persistentStorage) return false;
+  try{
+    localStorage.setItem(KEY,JSON.stringify(state));
+    return true;
+  }catch(e){
+    persistentStorage=false;
+    updateStorageStatus();
+    return false;
+  }
+}
+function updateStorageStatus(){
+  const txt=document.getElementById('storageText');
+  const dot=document.getElementById('storageDot');
+  if(!txt||!dot)return;
+  if(persistentStorage){
+    txt.textContent='Speicher: dauerhaft';
+    dot.className='dot';
+  }else{
+    txt.textContent='Speicher: nur diese Sitzung';
+    dot.className='dot temp';
+  }
+}
+function secAt(idx){let a=[];for(let d=-3;d<=3;d++)a.push(wheel[(idx+d+37)%37]);return a}
+function z(history,sector,n){const data=history.slice(-Math.min(n,history.length));const N=data.length;if(!N)return 0;const S=new Set(sector);let hits=0;data.forEach(v=>{if(S.has(v))hits++});const p=7/37,sd=Math.sqrt(N*p*(1-p));return sd?(hits-N*p)/sd:0}
+function score(history,idx){const sec=secAt(idx),ws=[15,30,60],w=[.7,1,1.3];let s=0,wt=0;ws.forEach((n,i)=>{const N=Math.min(n,history.length);if(N>=10){s+=z(history,sec,n)*w[i];wt+=w[i]}});return{center:wheel[idx],sector:sec,score:wt?s/wt:-999}}
+function topTwo(history){const arr=wheel.map((_,i)=>score(history,i)).sort((a,b)=>b.score-a.score);const a=arr[0];let b=arr.find(x=>x.center!==a.center && x.sector.every(n=>!a.sector.includes(n)));if(!b)b=arr.find(x=>x.center!==a.center)||arr[1];return[a,b]}
+function signalLevel(s,count){if(count<15)return 0;if(s<1.2)return 0;if(s<1.8)return 1;if(s<2.4)return 2;if(s<3)return 3;return 4}
+function plForBet(b){if(!b.resolved)return 0;return b.hit?(36-b.units):-b.units}
+function tableStats(t){const resolved=t.bets.filter(b=>b.resolved);const hits=resolved.filter(b=>b.hit).length;const pl=resolved.reduce((a,b)=>a+plForBet(b),0);return{resolved,hits,pl,rate:resolved.length?hits/resolved.length*100:0}}
+function resolveBetIfNeeded(t,newNumber){const b=t.activeBet;if(!b)return;const set=new Set(b.numbers);b.result=newNumber;b.hit=set.has(newNumber);b.resolved=true;b.resolvedAt=new Date().toISOString();t.activeBet=null}
+function addNumber(n){const t=state.tables[state.active];resolveBetIfNeeded(t,n);t.history.push(n);save();render()}
+function createBet(type){const t=state.tables[state.active];if(t.activeBet)return;const [a,b]=topTwo(t.history);if(t.history.length<15)return alert('Noch zu wenig Daten.');let numbers,units;if(type==='A'){numbers=[...a.sector];units=7}else{numbers=[...new Set([...a.sector,...b.sector])];units=numbers.length}
+ const bet={id:Date.now(),type,createdAt:new Date().toISOString(),aCenter:a.center,bCenter:type==='AB'?b.center:null,numbers,units,resolved:false,hit:false,result:null,aScore:a.score,bScore:type==='AB'?b.score:null};t.bets.push(bet);t.activeBet=bet;save();render()}
+function skip(){const t=state.tables[state.active];t.skips++;save();render()}
+function fmtScore(v){return v<-100?'—':v.toFixed(1)}
+function render(){updateStorageStatus();const t=state.tables[state.active], [a,b]=topTwo(t.history),stats=tableStats(t);document.getElementById('tableSel').value=state.active;document.getElementById('tableTitle').textContent=t.name.toUpperCase();document.getElementById('coupCount').textContent=t.history.length+' Coups';document.getElementById('aNum').textContent=t.history.length>=10?a.center:'—';document.getElementById('bNum').textContent=t.history.length>=10?b.center:'—';document.getElementById('aScore').textContent='Score '+fmtScore(a.score);document.getElementById('bScore').textContent='Score '+fmtScore(b.score);
+ const level=signalLevel(a.score,t.history.length);document.getElementById('statusText').textContent=t.activeBet?'BET AKTIV':(t.history.length<15?'ERFASSEN':level>=2?'BET':level===1?'BEOBACHTEN':'WARTEN');document.getElementById('betsText').textContent=stats.resolved.length;const pl=document.getElementById('plText');pl.textContent=(stats.pl>0?'+':'')+stats.pl+' U';pl.className=stats.pl>0?'positive':stats.pl<0?'negative':'';document.getElementById('hitsText').textContent=stats.hits+' Hits';document.getElementById('rateText').textContent=stats.rate.toFixed(1).replace('.',',')+'%';document.getElementById('sessionInfo').textContent=new Date(t.sessionStarted).toLocaleDateString('de-DE');
+ const fb=document.getElementById('feedback');if(t.activeBet){fb.textContent=(t.activeBet.type==='A'?'A':'A+B')+' gesetzt · nächster Coup entscheidet';fb.className='feedback warn'}else{const last=t.bets.filter(x=>x.resolved).slice(-1)[0];if(last){fb.textContent=last.hit?'✓ HIT · '+(plForBet(last)>0?'+':'')+plForBet(last)+' U':'✕ MISS · '+plForBet(last)+' U';fb.className='feedback '+(last.hit?'positive':'negative')}else{fb.textContent='Noch kein Bet aktiv.';fb.className='feedback'}}
+ const h=document.getElementById('history');h.innerHTML='';t.history.slice(-18).reverse().forEach((n,i)=>{const s=document.createElement('span');s.className='ball'+(i===0?' latest':'');s.textContent=n;h.appendChild(s)});
+ document.getElementById('betABtn').disabled=!!t.activeBet||t.history.length<15;document.getElementById('betABBtn').disabled=!!t.activeBet||t.history.length<15}
+const grid=document.getElementById('numGrid');for(let n=0;n<=36;n++){const b=document.createElement('button');b.className='nbtn '+(n===0?'zero':redNums.has(n)?'rednum':'');b.textContent=n;b.onclick=()=>addNumber(n);grid.appendChild(b)}
+document.getElementById('tableSel').onchange=e=>{state.active=+e.target.value;save();render()};document.getElementById('undoBtn').onclick=()=>{const t=state.tables[state.active];if(t.activeBet)return alert('Aktiven Bet zuerst mit dem nächsten Coup auflösen.');if(!t.history.length)return;t.history.pop();save();render()};document.getElementById('resetBtn').onclick=()=>{if(confirm('Aktuellen Tisch wirklich komplett löschen?')){state.tables[state.active]=freshTable(state.active);save();render()}};document.getElementById('betABtn').onclick=()=>createBet('A');document.getElementById('betABBtn').onclick=()=>createBet('AB');document.getElementById('skipBtn').onclick=skip;document.getElementById('newSessionBtn').onclick=()=>{if(confirm('Neue Session für diesen Tisch starten? Die aktuelle Session wird überschrieben. Vorher ggf. exportieren.')){state.tables[state.active]=freshTable(state.active);save();render()}};document.getElementById('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='roulette-session-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+render();
+</script>
+</body></html>
